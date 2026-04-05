@@ -17,7 +17,14 @@ spec:
         - name: filebrowser
           image: filebrowser/filebrowser:latest
           ports:
-            - containerPort: 80
+            - containerPort: 8080
+          env:
+            - name: FB_PORT
+              value: "8080"
+            - name: FB_USERNAME
+              value: "admin"
+            - name: FB_PASSWORD
+              value: "admin"
           volumeMounts:
             - name: config
               mountPath: /database
