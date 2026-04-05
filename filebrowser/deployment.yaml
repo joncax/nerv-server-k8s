@@ -18,15 +18,11 @@ spec:
           image: filebrowser/filebrowser:latest
           ports:
             - containerPort: 8080
-          env:
-            - name: FB_PORT
-              value: "8080"
-            - name: FB_USERNAME
-              value: "admin"
-            - name: FB_PASSWORD
-              value: "admin"
           volumeMounts:
-            - name: config
+            - name: config-file
+              mountPath: /config/settings.json
+              subPath: settings.json
+            - name: database
               mountPath: /database
             - name: media
               mountPath: /srv/media
@@ -35,7 +31,10 @@ spec:
             - name: passport
               mountPath: /srv/passport
       volumes:
-        - name: config
+        - name: config-file
+          configMap:
+            name: filebrowser-config
+        - name: database
           persistentVolumeClaim:
             claimName: filebrowser-config-pvc
         - name: media
