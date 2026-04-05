@@ -16,15 +16,12 @@ spec:
       containers:
         - name: filebrowser
           image: filebrowser/filebrowser:latest
+          args:
+            - --database=/database/filebrowser.db
+            - --port=8080
+            - --root=/srv
           ports:
             - containerPort: 8080
-          env:
-            - name: FB_PORT
-              value: "8080"
-            - name: FB_USERNAME
-              value: "admin"
-            - name: FB_PASSWORD
-              value: "admin"
           volumeMounts:
             - name: config
               mountPath: /database
