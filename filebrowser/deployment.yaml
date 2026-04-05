@@ -21,6 +21,10 @@ spec:
           env:
             - name: FB_PORT
               value: "8080"
+            - name: FB_USERNAME
+              value: "admin"
+            - name: FB_PASSWORD
+              value: "admin"
           volumeMounts:
             - name: config
               mountPath: /database
