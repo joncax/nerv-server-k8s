@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: radarr-config-pv
+  namespace: radarr
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /opt/radarr/config
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: radarr-filmes-pv
+  namespace: radarr
+spec:
+  capacity:
+    storage: 200Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /opt/media/filmes
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: radarr-downloads-pv
+  namespace: radarr
+spec:
+  capacity:
+    storage: 200Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /opt/media/downloads

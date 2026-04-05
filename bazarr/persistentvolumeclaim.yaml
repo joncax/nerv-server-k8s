@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bazarr-config-pvc
+  namespace: bazarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  selector:
+    matchLabels:
+      type: bazarr-config
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bazarr-series-pvc
+  namespace: bazarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  selector:
+    matchLabels:
+      type: bazarr-series
+  resources:
+    requests:
+      storage: 200Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bazarr-filmes-pvc
+  namespace: bazarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  selector:
+    matchLabels:
+      type: bazarr-filmes
+  resources:
+    requests:
+      storage: 200Gi

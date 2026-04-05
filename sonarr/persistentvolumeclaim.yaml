@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr-config-pvc
+  namespace: sonarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  selector:
+    matchLabels:
+      type: sonarr-config
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr-series-pvc
+  namespace: sonarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  selector:
+    matchLabels:
+      type: sonarr-series
+  resources:
+    requests:
+      storage: 200Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr-downloads-pvc
+  namespace: sonarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  selector:
+    matchLabels:
+      type: sonarr-downloads
+  resources:
+    requests:
+      storage: 200Gi

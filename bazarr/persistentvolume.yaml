@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: bazarr-config-pv
+  labels:
+    type: bazarr-config
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /opt/bazarr/config
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: bazarr-series-pv
+  labels:
+    type: bazarr-series
+spec:
+  capacity:
+    storage: 200Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /opt/media/series
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: bazarr-filmes-pv
+  labels:
+    type: bazarr-filmes
+spec:
+  capacity:
+    storage: 200Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /opt/media/filmes
