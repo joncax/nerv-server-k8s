@@ -47,12 +47,14 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 30
             failureThreshold: 5
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /health
               port: 8191
             initialDelaySeconds: 45
             periodSeconds: 10
+            timeoutSeconds: 10
       volumes:
         # Shared memory alargada - necessaria para o browser nao crashar
         - name: shm
