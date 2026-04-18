@@ -44,14 +44,14 @@ spec:
             httpGet:
               path: /health
               port: 8191
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 30
-            failureThreshold: 3
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /health
               port: 8191
-            initialDelaySeconds: 15
+            initialDelaySeconds: 45
             periodSeconds: 10
       volumes:
         # Shared memory alargada - necessaria para o browser nao crashar
