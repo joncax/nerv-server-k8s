@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: byparr
+  namespace: default
+  labels:
+    app: byparr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: byparr
+  template:
+    metadata:
+      labels:
+        app: byparr
+    spec:
+      containers:
+        - name: byparr
+          image: ghcr.io/thephaseless/byparr:latest
+          ports:
+            - containerPort: 8191
+          env:
+            - name: HOST
+              value: "0.0.0.0"
+            - name: PORT
+              value: "8191"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          # Firefox/Camoufox requer /dev/shm maior que o default (64MB)
+          # e seccomp Unconfined para syscalls do browser
+          securityContext:
+            seccompProfile:
+              type: Unconfined
+          volumeMounts:
+            - name: shm
+              mountPath: /dev/shm
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8191
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8191
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        # Shared memory alargada - necessaria para o browser nao crashar
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: "512Mi"
+      restartPolicy: Always

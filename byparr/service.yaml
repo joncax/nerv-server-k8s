@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: byparr-service
+  namespace: default
+  labels:
+    app: byparr
+spec:
+  type: ClusterIP
+  selector:
+    app: byparr
+  ports:
+    - name: http
+      port: 8191
+      targetPort: 8191
+      protocol: TCP
