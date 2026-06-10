@@ -69,6 +69,10 @@ spec:
               value: "1"
             - name: HELM_PROVIDER
               value: "0"
+            - name: BASIC_AUTH_USER
+              value: "admin"
+            - name: BASIC_AUTH_PASSWORD
+              value: "nerv"
 ---
 apiVersion: v1
 kind: Service
