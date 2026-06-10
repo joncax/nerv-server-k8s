@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: jellyfin
   namespace: jellyfin
+  annotations:
+    keel.sh/policy: force
+    keel.sh/trigger: poll
+    keel.sh/pollSchedule: "0 4 * * *"
 spec:
   replicas: 1
   selector:
