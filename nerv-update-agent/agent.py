@@ -1,5 +1,7 @@
 import json
 import os
+import sqlite3
+from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,6 +20,7 @@ app.add_middleware(
 )
 
 LOG_FILE = "/var/log/nerv/magi-agent.log"
+DB_PATH = "/opt/nerv-update-agent/versions.db"
 GITHUB_API = "https://api.github.com/repos/{repo}/releases/latest"
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 
@@ -27,6 +30,39 @@ def github_headers():
     if GITHUB_TOKEN:
         headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
     return headers
+
+
+# ─── SQLite helpers ───────────────────────────────────────────────────────────
+
+def get_installed_version(app_name: str) -> dict:
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT version, recorded_at, source FROM installed_versions WHERE app = ?",
+            (app_name,)
+        )
+        row = cur.fetchone()
+        conn.close()
+        if row:
+            return {"version": row[0], "recorded_at": row[1], "source": row[2]}
+        return {"version": None, "recorded_at": None, "source": None}
+    except Exception:
+        return {"version": None, "recorded_at": None, "source": None}
+
+
+def save_installed_version(app_name: str, version: str, source: str = "update"):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT OR REPLACE INTO installed_versions (app, version, recorded_at, source)
+            VALUES (?, ?, ?, ?)
+        """, (app_name, version, datetime.now(timezone.utc).isoformat(), source))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        write_log(app_name, "save_version", "failed", {"error": str(e)})
 
 
 # ─── Health ───────────────────────────────────────────────────────────────────
@@ -50,8 +86,10 @@ def app_info(app_name: str):
 
     cfg = APPS[app_name]
     local_digest = get_local_digest(cfg["image"])
+    installed = get_installed_version(app_name)
 
     github_info = {}
+    latest_version = None
     try:
         resp = requests.get(
             GITHUB_API.format(repo=cfg["github_repo"]),
@@ -60,8 +98,9 @@ def app_info(app_name: str):
         )
         if resp.status_code == 200:
             data = resp.json()
+            latest_version = data.get("tag_name", "")
             github_info = {
-                "latest_version": data.get("tag_name", ""),
+                "latest_version": latest_version,
                 "release_url": data.get("html_url", ""),
                 "published_at": data.get("published_at", ""),
             }
@@ -76,7 +115,41 @@ def app_info(app_name: str):
         "name": app_name,
         "image": cfg["image"],
         "local_digest": local_digest,
+        "installed_version": installed["version"],
+        "installed_recorded_at": installed["recorded_at"],
         "github": github_info,
+    }
+
+
+# ─── Verify ───────────────────────────────────────────────────────────────────
+
+@app.post("/apps/{app_name}/verify")
+def verify_app(app_name: str):
+    if app_name not in APPS:
+        raise HTTPException(status_code=404, detail=f"App '{app_name}' not found")
+
+    cfg = APPS[app_name]
+
+    try:
+        resp = requests.get(
+            GITHUB_API.format(repo=cfg["github_repo"]),
+            headers=github_headers(),
+            timeout=5
+        )
+        if resp.status_code != 200:
+            return {"status": "error", "detail": f"GitHub returned {resp.status_code}"}
+        latest_version = resp.json().get("tag_name", "")
+    except Exception:
+        return {"status": "error", "detail": "GitHub unreachable"}
+
+    save_installed_version(app_name, latest_version, source="verify")
+    write_log(app_name, "verify", "success", {"version": latest_version})
+
+    return {
+        "status": "ok",
+        "app": app_name,
+        "version": latest_version,
+        "source": "verify",
     }
 
 
@@ -89,6 +162,18 @@ def trigger_update(app_name: str):
 
     cfg = APPS[app_name]
 
+    latest_version = None
+    try:
+        resp = requests.get(
+            GITHUB_API.format(repo=cfg["github_repo"]),
+            headers=github_headers(),
+            timeout=5
+        )
+        if resp.status_code == 200:
+            latest_version = resp.json().get("tag_name", "")
+    except Exception:
+        pass
+
     def event_stream():
         for line in update_app(
             app_name=app_name,
@@ -97,6 +182,8 @@ def trigger_update(app_name: str):
             namespace=cfg["namespace"],
         ):
             yield f"data: {line}\n\n"
+        if latest_version:
+            save_installed_version(app_name, latest_version, source="update")
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(
