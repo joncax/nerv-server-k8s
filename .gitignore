@@ -3,3 +3,4 @@ package-lock.json
 package.json
 *.Identifier
 nerv-update-agent/versions.db
+nerv-update-agent/override.conf
